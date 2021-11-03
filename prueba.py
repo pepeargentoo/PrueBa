@@ -5,6 +5,7 @@ from flask import Flask,request,jsonify,Response,send_file
 import io
 import time
 import zipfile
+import hashlib
 
 
 app = Flask(__name__)
@@ -12,7 +13,10 @@ api = 'https://rickandmortyapi.com/api'
 @app.route("/", methods =['POST'])
 def infochapter(**datos):
     datos = request.form
-    info = requests.get(api).json()  
+    info = requests.get(api).json()
+    p = json.dumps(info)
+    h = hash(p)
+  
     if len(datos) > 0:
         if "zip" in datos:
             info = json.dumps(info,indent = 4)
@@ -32,7 +36,8 @@ def infochapter(**datos):
                     mimetype='application/zip',
                     headers={'Content-Disposition': 'attachment;filename=tmp.zip'}) 
     else:
-        return info
+        return json.dumps({'code':200,'data':info,'hash':h})
+        #return info
 
 @app.route('/<filtro>',methods =['POST'])
 def getcharacter(filtro):
@@ -40,6 +45,8 @@ def getcharacter(filtro):
     if(filtro == "character" or filtro == "location" or filtro == "episode"):
         url = api+'/'+filtro
         character = requests.get(url).json()
+        p = json.dumps(character)
+        h = hash(p)
         if len(datos) > 0:
             if "zip" in datos:
                 info = json.dumps(character,indent = 4)
@@ -58,8 +65,41 @@ def getcharacter(filtro):
                 return Response(fileobj.getvalue(),
                     mimetype='application/zip',
                     headers={'Content-Disposition': 'attachment;filename=tmp.zip'}) 
-        return character
+        return json.dumps({'code':200,'data':character,'hash':h})
     return json.dumps({'code':400,'status':'upss'})
+
+@app.route('/verifico',methods =['POST'])
+def verifico():
+    datos = request.form
+    if "prevurl" not in datos:
+        return json.dumps({'code':400,'status':'la prevurl es requerida'})
+
+    if "hash" not in datos:
+        return json.dumps({'code':400,'status':'la hash es requerida'})
+
+    if (datos['prevurl'] == "character" or datos['prevurl'] == "location" or 
+        datos['prevurl'] == "episode" or datos['prevurl'] == "/" ):
+       
+        if(datos['prevurl'] == "/"):
+            info = requests.get(api).json()
+            p = json.dumps(info)
+            h = hash(p)
+            if(str(h) == str(datos['hash'])):
+                return json.dumps({'code':200,'status':'ok'})
+            else:
+                return json.dumps({'code':400,'status':'invalid'})
+        else:
+            url = api+'/'+datos['prevurl']
+            character = requests.get(url).json()
+            p = json.dumps(character)
+            h = hash(p)
+            if(str(h) == str(datos['hash'])):
+                return json.dumps({'code':200,'status':'ok'})
+            else:
+                return json.dumps({'code':400,'status':'invalid'})
+            #print(0)
+    else:
+        return json.dumps({'code':400,'status':'la url prev no es valida'})
 
 
 def createzip():
