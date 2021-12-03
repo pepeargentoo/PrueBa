@@ -13,3 +13,4 @@ flask run
 2) pendiente la parte de encriptacion planeaba hacer un hash con la info si es un dispositivo habilitado para la lectura devuelvo el texto crudo sino sigue el hash
 3) happy code
 
+# miripython
