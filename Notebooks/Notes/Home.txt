@@ -1,0 +1,15 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.6
+Creation-Date: 2021-12-09T16:33:40-03:00
+
+====== Home ======
+Creado jueves 09 diciembre 2021
+
+SELECT COALESCE((SELECT count(*) FROM analisis_pic_operaciones  INNER JOIN gestion_pic_clientes ON ' \
+				' gestion_pic_clientes.id = analisis_pic_operaciones."idCliente" ' \
+				' WHERE analisis_pic_operaciones.'+fecha+' ' \
+				' AND analisis_pic_operaciones."idComercio" ='+str(comercios)+') * 100.0 / ' \
+				' NULLIF((SELECT COUNT(*) FROM analisis_pic_operaciones' \
+				' INNER JOIN gestion_pic_clientes ON ' \
+				' gestion_pic_clientes.id = analisis_pic_operaciones."idCliente" ' \
+				' WHERE analisis_pic_operaciones."idComercio" ='+str(comercios)+' ),0),0) AS "nuevos" 
